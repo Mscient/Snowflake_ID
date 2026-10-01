@@ -18,31 +18,25 @@ int main()
     std::cout << "Generated ID: "
               << id << "\n\n";
 
-    // Decode the ID
-    auto data = generator.decode(id);
+    // Decode the ID — decode() is now static, no instance needed.
+    auto data = Snowflake::decode(id);
 
     std::cout << "Decoded ID\n";
-    std::cout << "Worker ID: "
-              << data.worker_id << '\n';
+    std::cout << "Worker ID:  " << data.worker_id  << '\n';
+    std::cout << "Sequence:   " << data.sequence   << '\n';
+    std::cout << "Timestamp:  " << data.timestamp
+              << " ms (since Snowflake epoch)\n";
 
-    std::cout << "Sequence: "
-              << data.sequence << '\n';
-
-    std::cout << "Timestamp: "
-              << data.timestamp << '\n';
-
-    // Convert Snowflake timestamp back to real time
-    std::chrono::system_clock::time_point time_point{
-        std::chrono::milliseconds(
-            data.timestamp + SnowflakeConfig::EPOCH
-        )
+    // unix_ms() adds EPOCH so we get the standard Unix timestamp — no
+    // manual addition needed.
+    auto tp = std::chrono::system_clock::time_point{
+        std::chrono::milliseconds(data.unix_ms())
     };
 
-    std::time_t time =
-        std::chrono::system_clock::to_time_t(time_point);
+    std::time_t t = std::chrono::system_clock::to_time_t(tp);
 
-    std::cout << "Generated at: "
-              << std::ctime(&time);
+    // std::ctime is fine for a demo; it is not thread-safe.
+    std::cout << "Generated at: " << std::ctime(&t);
 
     return 0;
 }

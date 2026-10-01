@@ -64,7 +64,7 @@ int main()
     std::cout << "Unique IDs: "
               << unique_ids.size() << '\n';
 
-    if (unique_ids.size() == total_ids)
+    if (unique_ids.size() == static_cast<std::size_t>(total_ids))
     {
         std::cout << "[PASS] Concurrent generation\n";
         return 0;

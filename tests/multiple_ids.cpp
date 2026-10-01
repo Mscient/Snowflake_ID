@@ -30,12 +30,12 @@ int main()
     std::cout << "Total IDs: " << ID_COUNT << '\n';
     std::cout << "Unique IDs: " << ids.size() << '\n';
     std::cout << "Duplicates: "
-              << ID_COUNT - ids.size() << '\n';
+              << static_cast<std::size_t>(ID_COUNT) - ids.size() << '\n';
 
     std::cout << "Generation time: "
               << duration << " us\n";
 
-    if (ids.size() == ID_COUNT)
+    if (ids.size() == static_cast<std::size_t>(ID_COUNT))
     {
         std::cout << "[PASS] Multiple ID generation\n";
         return 0;

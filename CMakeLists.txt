@@ -5,66 +5,79 @@ project(SnowflakeID
     LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# ---------------------------------------------------------------------------
+# Options
+# ---------------------------------------------------------------------------
+option(SNOWFLAKE_BUILD_TESTS "Build the test suite"          ON)
+option(SNOWFLAKE_BUILD_DEMO  "Build the demo executable"     ON)
 
+# ---------------------------------------------------------------------------
 # Library
+# ---------------------------------------------------------------------------
 add_library(snowflake
     src/snow_flake.cpp
     src/clock.cpp
+    # Headers listed here so IDEs and dependency scanners see them.
+    include/snowflake/snowflake.hpp
+    include/snowflake/clock.hpp
+    include/snowflake/snow_flake_config.hpp
 )
+
+# Require C++20 per-target rather than setting the global standard.
+target_compile_features(snowflake PUBLIC cxx_std_20)
 
 target_include_directories(snowflake
     PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
-# Main application
-add_executable(snowflake_demo
-    src/main.cpp
+target_compile_options(snowflake PRIVATE
+    $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
 )
 
-target_link_libraries(snowflake_demo
-    PRIVATE snowflake
-)
+# ---------------------------------------------------------------------------
+# Demo
+# ---------------------------------------------------------------------------
+if(SNOWFLAKE_BUILD_DEMO)
+    add_executable(snowflake_demo src/main.cpp)
+    target_link_libraries(snowflake_demo PRIVATE snowflake)
+    target_compile_features(snowflake_demo PRIVATE cxx_std_20)
+endif()
 
+# ---------------------------------------------------------------------------
 # Tests
-add_executable(test_multiple_ids
-    tests/multiple_ids.cpp
-)
+# ---------------------------------------------------------------------------
+# enable_testing() must come before any add_test() calls (convention).
+if(SNOWFLAKE_BUILD_TESTS)
+    enable_testing()
 
-target_link_libraries(test_multiple_ids
-    PRIVATE snowflake
-)
+    add_executable(test_multiple_ids tests/multiple_ids.cpp)
+    target_link_libraries(test_multiple_ids PRIVATE snowflake)
+    target_compile_features(test_multiple_ids PRIVATE cxx_std_20)
 
-add_executable(test_overflow
-    tests/overflow.cpp
-)
+    add_executable(test_overflow tests/overflow.cpp)
+    target_link_libraries(test_overflow PRIVATE snowflake)
+    target_compile_features(test_overflow PRIVATE cxx_std_20)
 
-target_link_libraries(test_overflow
-    PRIVATE snowflake
-)
+    add_executable(test_concurrency tests/concurrency.cpp)
+    target_link_libraries(test_concurrency PRIVATE snowflake)
+    target_compile_features(test_concurrency PRIVATE cxx_std_20)
 
-add_executable(test_concurrency
-    tests/concurrency.cpp
-)
+    add_test(NAME multiple_ids COMMAND test_multiple_ids)
+    add_test(NAME overflow      COMMAND test_overflow)
+    add_test(NAME concurrency   COMMAND test_concurrency)
+endif()
 
-target_link_libraries(test_concurrency
-    PRIVATE snowflake
-)
-
-
-enable_testing()
-
-add_test(NAME multiple_ids COMMAND test_multiple_ids)
-add_test(NAME overflow COMMAND test_overflow)
-add_test(NAME concurrency COMMAND test_concurrency)
-
-# Installation
+# ---------------------------------------------------------------------------
+# Installation (with export set for find_package support)
+# ---------------------------------------------------------------------------
 include(GNUInstallDirs)
 
 install(
     TARGETS snowflake
+    EXPORT  SnowflakeIDTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -73,4 +86,33 @@ install(
 install(
     DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    EXPORT      SnowflakeIDTargets
+    FILE        SnowflakeIDTargets.cmake
+    NAMESPACE   SnowflakeID::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SnowflakeID
+)
+
+# Generate a basic package config file so consumers can use find_package().
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+    "${PROJECT_SOURCE_DIR}/cmake/SnowflakeIDConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/SnowflakeIDConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/SnowflakeID"
+)
+
+write_basic_package_version_file(
+    "${PROJECT_BINARY_DIR}/SnowflakeIDConfigVersion.cmake"
+    VERSION      ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(
+    FILES
+        "${PROJECT_BINARY_DIR}/SnowflakeIDConfig.cmake"
+        "${PROJECT_BINARY_DIR}/SnowflakeIDConfigVersion.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/SnowflakeID"
 )
