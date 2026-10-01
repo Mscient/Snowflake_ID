@@ -34,4 +34,8 @@ Each generated ID is a 64-bit integer divided into three logical components:
           |                      |                  |
           |                      |                  +-- 0-4095
           |                      +--------------------- 0-1023
+<<<<<<< HEAD
           +-------------------------------------------- Milliseconds
+=======
+          +-------------------------------------------- Milliseconds
+>>>>>>> 8ac3134130099c6740a9741b5b69befcf3f7375a
