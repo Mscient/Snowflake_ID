@@ -1063,29 +1063,3 @@ The main learning areas include:
 * Software architecture
 
 ---
-
-# 📚 Repository
-
-GitHub:
-
-[https://github.com/Mscient/Snowflake_ID](https://github.com/Mscient/Snowflake_ID)
-
----
-
-# 👨‍💻 Author
-
-Developed as a C++ systems-oriented project to explore distributed ID generation, concurrency, library design, CMake, and automated testing.
-
-````
-
-### After replacing `README.md`
-
-Run:
-
-```powershell
-git add README.md
-git commit -m "docs: add complete project documentation"
-git push origin main
-````
-
-Then the GitHub repository will have a README that explains the project **from installation → architecture → ID generation → library usage → testing → CI**.
