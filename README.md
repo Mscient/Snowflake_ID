@@ -1,6 +1,4 @@
-Below is a **complete `README.md` file** ready to paste directly into your repository.
-
-````markdown
+ 
 # Snowflake ID Generator
 
 A thread-safe, Snowflake-style distributed ID generator implemented in **C++20**.
